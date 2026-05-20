@@ -1,13 +1,11 @@
 import os
 from dotenv import load_dotenv
-from flask import request
+from flask import Flask, request, redirect, url_for, session, render_template
 from models.log import Log
 from extensions import db, limiter
 from werkzeug.exceptions import HTTPException
 
 load_dotenv()
-
-from flask import Flask, redirect, url_for, session, render_template
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'fallback-secret-key')
@@ -16,6 +14,16 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 limiter.init_app(app)
 db.init_app(app)
+
+def get_client_ip():
+    """Get client IP address, taking into account proxies and load balancers."""
+    if request.headers.getlist("X-Forwarded-For"):
+        ip = request.headers.getlist("X-Forwarded-For")[0].split(',')[0].strip()
+    elif request.headers.getlist("X-Real-IP"):
+        ip = request.headers.getlist("X-Real-IP")[0]
+    else:
+        ip = request.remote_addr
+    return ip
 
 # Logging middleware for unauthorized access
 @app.before_request
@@ -29,7 +37,7 @@ def log_unauthorized_access():
     if 'username' not in session and request.endpoint:
         # Allow access to login and register pages
         if request.endpoint not in ['auth.login', 'auth.register', 'auth.logout']:
-            ip_address = request.remote_addr
+            ip_address = get_client_ip()
             log = Log(
                 username='Unknown',
                 action=f'Unauthorized access to {request.path}',
@@ -42,8 +50,8 @@ def log_unauthorized_access():
 
 # Specific error handlers for clean logging
 @app.errorhandler(404)
-def not_found_error(e):
-    ip_address = request.remote_addr
+def not_found_error(_):
+    ip_address = get_client_ip()
     username = session.get('username', 'Unknown')
 
     log = Log(
@@ -59,8 +67,8 @@ def not_found_error(e):
     return render_template('error.html', message="Page not found"), 404
 
 @app.errorhandler(429)
-def rate_limit_error(e):
-    ip_address = request.remote_addr
+def rate_limit_error(_):
+    ip_address = get_client_ip()
     username = session.get('username', 'Unknown')
 
     log = Log(
@@ -79,7 +87,7 @@ def rate_limit_error(e):
 # Global error handler for other exceptions
 @app.errorhandler(Exception)
 def log_exception(e):
-    ip_address = request.remote_addr
+    ip_address = get_client_ip()
     username = session.get('username', 'Unknown')
 
     # Determine reason based on error type
