@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, Response, redirect, url_for, session
+from flask import Blueprint, render_template, Response, redirect, url_for, session, request
 from extensions import db
 from models.log import Log
 import cv2
@@ -41,7 +41,12 @@ def dashboard():
     if 'username' not in session:
         return redirect(url_for('auth.login'))
 
-    log = Log(username=session['username'], action='Viewed camera feed')
+    log = Log(
+        username=session['username'],
+        action='Viewed camera feed',
+        ip_address=request.remote_addr,
+        status='Success'
+    )
     db.session.add(log)
     db.session.commit()
 

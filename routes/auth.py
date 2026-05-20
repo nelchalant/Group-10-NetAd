@@ -15,15 +15,42 @@ def register():
         confirm  = request.form['confirm_password']
 
         if password != confirm:
+            log = Log(
+                username=username or 'unknown',
+                action='Registration attempt',
+                ip_address=request.remote_addr,
+                status='Failed',
+                reason='Passwords do not match'
+            )
+            db.session.add(log)
+            db.session.commit()
             flash('Passwords do not match!')
             return redirect(url_for('auth.register'))
 
         if len(password) < 8:
+            log = Log(
+                username=username or 'unknown',
+                action='Registration attempt',
+                ip_address=request.remote_addr,
+                status='Failed',
+                reason='Password too short'
+            )
+            db.session.add(log)
+            db.session.commit()
             flash('Password must be at least 8 characters!')
             return redirect(url_for('auth.register'))
 
         existing_user = User.query.filter_by(username=username).first()
         if existing_user:
+            log = Log(
+                username=username,
+                action='Registration attempt',
+                ip_address=request.remote_addr,
+                status='Failed',
+                reason='Username already exists'
+            )
+            db.session.add(log)
+            db.session.commit()
             flash('Username already exists!')
             return redirect(url_for('auth.register'))
 
@@ -35,7 +62,12 @@ def register():
         new_user = User(username=username, password=hashed_password)
         db.session.add(new_user)
 
-        log = Log(username=username, action='Registered an account')
+        log = Log(
+            username=username,
+            action='Registered an account',
+            ip_address=request.remote_addr,
+            status='Success'
+        )
         db.session.add(log)
         db.session.commit()
 
@@ -60,12 +92,33 @@ def login():
         ):
             session['username'] = username
 
-            log = Log(username=username, action='Logged in')
+            log = Log(
+                username=username,
+                action='Logged in',
+                ip_address=request.remote_addr,
+                status='Success'
+            )
             db.session.add(log)
             db.session.commit()
 
             return redirect(url_for('camera.dashboard'))
         else:
+            # Determine reason for failure
+            if not user:
+                reason = 'User not found'
+            else:
+                reason = 'Wrong password'
+
+            log = Log(
+                username=username or 'unknown',
+                action='Login attempt',
+                ip_address=request.remote_addr,
+                status='Failed',
+                reason=reason
+            )
+            db.session.add(log)
+            db.session.commit()
+
             flash('login failed')
             return redirect(url_for('auth.login'))
 
@@ -77,7 +130,12 @@ def logout():
     username = session.get('username')
 
     if username:
-        log = Log(username=username, action='Logged out')
+        log = Log(
+            username=username,
+            action='Logged out',
+            ip_address=request.remote_addr,
+            status='Success'
+        )
         db.session.add(log)
         db.session.commit()
 

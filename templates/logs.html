@@ -16,6 +16,9 @@
                 <th>#</th>
                 <th>Username</th>
                 <th>Action</th>
+                <th>IP Address</th>
+                <th>Status</th>
+                <th>Reason</th>
                 <th>Timestamp</th>
             </tr>
             {% for log in logs %}
@@ -23,6 +26,9 @@
                 <td>{{ log.id }}</td>
                 <td>{{ log.username }}</td>
                 <td>{{ log.action }}</td>
+                <td>{{ log.ip_address or '' }}</td>
+                <td>{{ log.status }}</td>
+                <td>{{ log.reason or '' }}</td>
                 <td>{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
             </tr>
             {% endfor %}
