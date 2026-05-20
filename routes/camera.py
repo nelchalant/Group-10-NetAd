@@ -5,18 +5,14 @@ import cv2
 
 camera = Blueprint('camera', __name__)
 
-# ─────────────────────────────────────────────────────────────
-# CAMERA STREAM URL
-# Leave as None until hardware is ready.
-#
+# Camera stream URL - set to None until hardware is available
 # When hardware arrives, replace None with your stream URL:
+# Examples:
 #   Hikvision : "rtsp://192.168.1.10:554/Streaming/Channels/101"
 #   Dahua     : "rtsp://192.168.1.10:554/cam/realmonitor?channel=1&subtype=0"
 #   Generic   : "rtsp://192.168.1.10:554/stream1"
-#   TP-Link   : "rtsp://192.168.1.10:554/stream1"
 #   Phone app : "http://your_phone_ip:8080/video"
 #   Webcam    : 0
-# ─────────────────────────────────────────────────────────────
 STREAM_URL = None
 
 

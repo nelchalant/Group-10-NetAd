@@ -64,8 +64,7 @@ ensure_log_table_schema()
 @app.before_request
 def log_unauthorized_access():
     # Skip logging for static files and auth routes to avoid noise
-    if request.endpoint and ('static' in request.endpoint or
-                           request.endpoint.startswith('auth.')):
+    if request.endpoint and ('static' in request.endpoint or request.endpoint.startswith('auth.')):
         return
 
     # Check if user is trying to access protected routes without login
