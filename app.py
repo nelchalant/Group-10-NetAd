@@ -4,6 +4,7 @@ from flask import Flask, request, redirect, url_for, session, render_template
 from models.log import Log
 from extensions import db, limiter
 from werkzeug.exceptions import HTTPException
+from sqlalchemy import inspect, text
 
 load_dotenv()
 
@@ -24,6 +25,40 @@ def get_client_ip():
     else:
         ip = request.remote_addr
     return ip
+
+def ensure_log_table_schema():
+    """Ensure the logs table has all required columns, adding them if missing."""
+    with app.app_context():
+        inspector = inspect(db.engine)
+        if not inspector.has_table("logs"):
+            # Table doesn't exist yet - db.create_all() will handle it
+            return
+
+        existing_columns = [col['name'] for col in inspector.get_columns('logs')]
+
+        # Add missing columns
+        with db.engine.connect() as conn:
+            trans = conn.begin()
+            try:
+                if 'ip_address' not in existing_columns:
+                    conn.execute(text("ALTER TABLE logs ADD COLUMN ip_address VARCHAR(45)"))
+                    print("Added ip_address column to logs table")
+
+                if 'status' not in existing_columns:
+                    conn.execute(text("ALTER TABLE logs ADD COLUMN status VARCHAR(20) DEFAULT 'Success'"))
+                    print("Added status column to logs table")
+
+                if 'reason' not in existing_columns:
+                    conn.execute(text("ALTER TABLE logs ADD COLUMN reason VARCHAR(255)"))
+                    print("Added reason column to logs table")
+
+                trans.commit()
+            except Exception as e:
+                trans.rollback()
+                print(f"Error updating logs table schema: {e}")
+
+# Apply schema fixes on startup
+ensure_log_table_schema()
 
 # Logging middleware for unauthorized access
 @app.before_request
