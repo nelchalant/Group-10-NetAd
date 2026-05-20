@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Configure Camera – Group 10 NetAd</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .container { max-width: 500px; margin: 0 auto; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"] { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        button { background-color: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        .back-link { margin-top: 20px; display: inline-block; color: #007bff; text-decoration: none; }
+        .back-link:hover { text-decoration: underline; }
+        .flash { padding: 10px; margin-bottom: 20px; border-radius: 4px; }
+        .flash.success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Configure Camera Stream</h1>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+        <form method="POST">
+            <div class="form-group">
+                <label for="stream_url">Camera Stream URL (RTSP or HTTP)</label>
+                <input type="text" id="stream_url" name="stream_url" value="{{ current_url }}" placeholder="e.g., rtsp://192.168.1.10:554/stream1" required>
+                <small>Examples:
+                    <br>Hikvision: rtsp://192.168.1.10:554/Streaming/Channels/101
+                    <br>Dahua: rtsp://192.168.1.10:554/cam/realmonitor?channel=1&subtype=0
+                    <br>Generic: rtsp://192.168.1.10:554/stream1
+                    <br>Phone app: http://your_phone_ip:8080/video
+                    <br>Webcam: 0
+                </small>
+            </div>
+            <button type="submit">Save Configuration</button>
+        </form>
+        <br>
+        <a href="{{ url_for('camera.dashboard') }}" class="back-link">← Back to Dashboard</a>
+    </div>
+</body>
+</html>

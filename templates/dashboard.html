@@ -11,12 +11,13 @@
     {% else %}
         <p style="color:orange;">
             ⚠️ Camera not connected yet.
-            Update STREAM_URL in routes/camera.py once hardware is ready.
+            <a href="{{ url_for('camera.configure_camera') }}">Configure camera stream URL</a>
         </p>
     {% endif %}
 
     <br><br>
     <a href="/logs">View Logs</a> |
+    <a href="/configure_camera">Configure Camera</a> |
     <a href="/logout">Logout</a>
 </body>
 </html>
